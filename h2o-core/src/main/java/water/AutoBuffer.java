@@ -75,7 +75,7 @@ public /* final */ class AutoBuffer {
   final byte _persist;
 
   // The assumed max UDP packetsize
-  static final int MTU = 1500-8/*UDP packet header size*/;
+  static final int MTU = 3000/*UDP packet header size*/;
 
   // Enable this to test random TCP fails on open or write
   static final Random RANDOM_TCP_DROP = null; //new Random();
