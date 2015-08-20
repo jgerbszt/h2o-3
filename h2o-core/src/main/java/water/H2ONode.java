@@ -294,7 +294,7 @@ public class H2ONode extends Iced<H2ONode> implements Comparable {
             // Must make a fresh socket
             SocketChannel sock = SocketChannel.open();
             sock.socket().setReuseAddress(true);
-            sock.socket().setSendBufferSize(AutoBuffer.BBP_BIG.size());
+//            sock.socket().setSendBufferSize(AutoBuffer.BBP_BIG.size());
             InetSocketAddress isa = new InetSocketAddress(_key.getAddress(), _key.getPort());
             boolean res = false;
             try{
@@ -394,7 +394,7 @@ public class H2ONode extends Iced<H2ONode> implements Comparable {
     // Must make a fresh socket
     SocketChannel sock2 = SocketChannel.open();
     sock2.socket().setReuseAddress(true);
-    sock2.socket().setSendBufferSize(AutoBuffer.BBP_BIG.size());
+//    sock2.socket().setSendBufferSize(AutoBuffer.BBP_BIG.size());
     boolean res = sock2.connect( _key );
     assert res && !sock2.isConnectionPending() && sock2.isBlocking() && sock2.isConnected() && sock2.isOpen();
     ByteBuffer bb = ByteBuffer.allocate(4).order(ByteOrder.nativeOrder());
