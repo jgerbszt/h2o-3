@@ -1,31 +1,40 @@
 package water;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.bio.SocketConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.server.Connector;
 
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import water.api.H2OErrorV3;
 import water.exceptions.H2OAbstractRuntimeException;
 import water.exceptions.H2OFailException;
-import water.fvec.UploadFileVec;
 import water.fvec.Frame;
+import water.fvec.UploadFileVec;
 import water.init.NodePersistentStorage;
 import water.util.FileUtils;
 import water.util.HttpResponseStatus;
@@ -102,15 +111,22 @@ public class JettyHTTPD {
   // Jetty server object.
   private Server _server;
 
+    private AuthConfig authConfig;
+
   /**
    * Create bare Jetty object.
    */
   public JettyHTTPD() {
   }
 
-  /**
-   * @return URI scheme
-   */
+
+    public void setAuthConfig(AuthConfig authConfig) {
+        this.authConfig = authConfig;
+    }
+
+    /**
+     * @return URI scheme
+     */
   public String getScheme() {
     return "http";
   }
@@ -208,6 +224,13 @@ public class JettyHTTPD {
     ServletContextHandler context = new ServletContextHandler(
             ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS
     );
+
+        if (authConfig != null) {
+            Log.info("Enable basic authentication. Username=" + authConfig.getUsername()
+                    + ", password=" + authConfig.getPassword());
+            context.setSecurityHandler(BasicAuthSecurityHandlerFactory.basicAuth(authConfig));
+        }
+
     context.setContextPath("/");
 
     context.addServlet(H2oNpsBinServlet.class,   "/3/NodePersistentStorage.bin/*");
@@ -215,6 +238,7 @@ public class JettyHTTPD {
     context.addServlet(H2oPostFileServlet.class, "/3/PostFile");
     context.addServlet(H2oDatasetServlet.class,   "/3/DownloadDataset.bin");   
     context.addServlet(H2oDefaultServlet.class,  "/");
+
 
     Handler[] handlers = {gh, rhh, eh1, context};
     HandlerCollection hc = new HandlerCollection();

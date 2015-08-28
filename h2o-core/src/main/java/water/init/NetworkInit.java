@@ -1,20 +1,40 @@
 package water.init;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.DatagramPacket;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.ServerSocketChannel;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import water.AuthConfig;
 import water.H2O;
 import water.H2ONode;
 import water.H2ONode.H2OSmallMessage;
 import water.JettyHTTPD;
-import water.TCPReceiverThread;
 import water.util.Log;
-
-import java.io.*;
-import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
-import java.nio.channels.ServerSocketChannel;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Data structure for holding network info specified by the user on the command line.
@@ -321,8 +341,13 @@ public class NetworkInit {
     H2O.API_PORT = H2O.ARGS.port == 0 ? H2O.ARGS.baseport : H2O.ARGS.port;
 
     // Late instantiation of Jetty object, if needed.
-    if (H2O.getJetty() == null) {
-      H2O.setJetty(new JettyHTTPD());
+        if (H2O.getJetty() == null) {
+            JettyHTTPD jettyHTTPD = new JettyHTTPD();
+            if (H2O.ARGS.web_username != null && H2O.ARGS.web_password != null) {
+                jettyHTTPD.setAuthConfig(
+                        new AuthConfig(H2O.ARGS.web_username, H2O.ARGS.web_password));
+            }
+            H2O.setJetty(jettyHTTPD);
     }
 
     while (true) {

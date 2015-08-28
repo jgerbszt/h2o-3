@@ -1,38 +1,52 @@
 package water;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.PropertyConfigurator;
+import org.reflections.Reflections;
+
+import com.brsanthu.googleanalytics.DefaultRequest;
 import com.brsanthu.googleanalytics.GoogleAnalytics;
+
 import hex.ModelBuilder;
 import jsr166y.CountedCompleter;
 import jsr166y.ForkJoinPool;
 import jsr166y.ForkJoinWorkerThread;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.PropertyConfigurator;
-import org.reflections.Reflections;
 import water.api.RequestServer;
 import water.exceptions.H2OFailException;
 import water.exceptions.H2OIllegalArgumentException;
-import water.init.*;
+import water.init.AbstractBuildVersion;
+import water.init.AbstractEmbeddedH2OConfig;
+import water.init.JarHash;
+import water.init.NetworkInit;
+import water.init.NodePersistentStorage;
 import water.nbhm.NonBlockingHashMap;
 import water.persist.PersistManager;
 import water.util.GAUtils;
 import water.util.Log;
 import water.util.OSUtils;
 import water.util.PrettyPrint;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.net.*;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicLong;
-import com.brsanthu.googleanalytics.DefaultRequest;
 
 /**
 * Start point for creating or joining an <code>H2O</code> Cloud.
@@ -242,6 +256,10 @@ final public class H2O {
     public ModelBuilder.BuilderVisibility model_builders_visibility = ModelBuilder.BuilderVisibility.Stable;
     public boolean useUDP = false;
 
+        public String web_username;
+
+        public String web_password;
+
     @Override public String toString() {
       StringBuilder result = new StringBuilder();
 
@@ -436,6 +454,12 @@ final public class H2O {
         ARGS.model_builders_visibility = ModelBuilder.BuilderVisibility.Experimental;
       } else if(s.matches("useUDP")) {
           ARGS.useUDP = true;
+            } else if (s.matches("username")) {
+                i = s.incrementAndCheck(i, args);
+                ARGS.web_username = args[i];
+            } else if (s.matches("password")) {
+                i = s.incrementAndCheck(i, args);
+                ARGS.web_password = args[i];
       } else {
         parseFailed("Unknown argument (" + s + ")");
       }
