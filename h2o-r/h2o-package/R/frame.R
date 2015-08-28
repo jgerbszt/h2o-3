@@ -2588,7 +2588,7 @@ h2o.vote  <- function(x, nclasses, weights=rep(0,ncol(x))) { .h2o.nary_frame_op(
 # TODO: Cleanup the cruft!
 #' Split H2O Dataset, Apply Function, and Return Results
 #'
-#' For each subset of an H2O data set, apply a user-specified function, then comine the results.
+#' For each subset of an H2O data set, apply a user-specified function, then combine the results.  This is an experimental feature.
 #'
 #' @param .data An \linkS4class{H2OFrame} object to be processed.
 #' @param .variables Variables to split \code{.data} by, either the indices or names of a set of columns.
@@ -3004,3 +3004,32 @@ h2o.trim <- function(x) { .h2o.nary_frame_op("trim", x) }
 ##   })
 ##   list.of.bins
 ## })
+
+#
+# Force evaluation of given frame
+# if it is necessary.
+#
+.h2o.evalFrame <- function(frame) {
+  mktmp <- !.is.eval(frame)
+  if (mktmp) {
+    .h2o.eval.frame(conn=h2o.getConnection(), ast=frame@mutable$ast, frame_id=frame@frame_id)
+  }
+}
+
+#
+# Check and evaluate given frame if it is necassary.
+# Returns frame.
+#
+.h2o.checkFrameParam <- function(frame, param_name) {
+  if (!inherits(frame, "H2OFrame")) {
+   tryCatch(frame <- h2o.getFrame(frame),
+            error = function(err) {
+              stop(cat("argument \"", param_name, "\" must be a valid H2OFrame or frame ID"))
+            })
+  } else {
+    # Force AST evaluation
+    .h2o.evalFrame(frame)
+  }
+  frame
+}
+
